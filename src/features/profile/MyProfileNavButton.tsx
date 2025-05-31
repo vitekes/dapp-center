@@ -1,46 +1,33 @@
 'use client';
 
+import Link from 'next/link';
 import { useAccount } from 'wagmi';
-import { useRouter } from 'next/navigation';
-import { useCallback, useState } from 'react';
-import { getProfile } from '@/shared/api/getProfile';
+import { useProfile } from '@/shared/api/profile/use-profile';
 
 /**
- * Кнопка «Мой профиль».
- * Показывается только когда кошелёк подключён.
- * При нажатии пытается определить handle пользователя и ведёт на
- * /profiles/<handle>. Если handle не найден, идём по адресу.
+ * Кнопка/ссылка «Мой профиль».
+ * Показывается только после подключения кошелька.
  */
 export function MyProfileNavButton() {
   const { address, isConnected } = useAccount();
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
 
-  const handleClick = useCallback(async () => {
-    if (!address) return;
+  /* ⬇️ Хук вызывается ВСЕГДА, адрес может быть undefined */
+  const { profile, isLoading } = useProfile(address as `0x${string}` | undefined);
 
-    setLoading(true);
-    try {
-      // ⚠️ пример: предполагаем, что getProfile вернёт объект с полем handle
-      const profile = await getProfile(address);
-      const handle = profile?.handle ?? address;
-
-      router.push(`/profiles/${handle}`);
-    } finally {
-      setLoading(false);
-    }
-  }, [address, router]);
-
+  /* Если кошелёк не подключён – ничего не отображаем */
   if (!isConnected) return null;
 
+  const target = profile?.handle
+    ? `/profiles/${profile.handle}`
+    : `/profiles/${address}`;
+
   return (
-    <button
-      type="button"
-      onClick={handleClick}
-      disabled={loading}
-      className="text-sm text-gray-700 hover:text-black transition-colors disabled:opacity-60"
+    <Link
+      href={target}
+      className="text-sm text-gray-700 transition-colors hover:text-black opacity-90 data-[loading=true]:opacity-60"
+      data-loading={isLoading}
     >
-      {loading ? 'Загрузка…' : 'Мой профиль'}
-    </button>
+      {isLoading ? 'Загрузка…' : 'Мой профиль'}
+    </Link>
   );
 }

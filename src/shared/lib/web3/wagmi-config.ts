@@ -1,3 +1,5 @@
+'use client';
+
 import { http } from 'wagmi';
 import {
   getDefaultConfig,
