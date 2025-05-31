@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DApp Center
 
-## Getting Started
+Децентрализованное приложение (DApp) для управления пожертвованиями, профилями пользователей и выдачи soulbound-бейджей за пожертвования.
 
-First, run the development server:
+## Структура проекта
+
+Проект состоит из следующих основных компонентов:
+
+### Смарт-контракты
+
+- **SoulboundBadge.sol** - ERC721-токен с ограничением на передачу (soulbound), используется для выдачи бейджей за пожертвования.
+- **DonationContract.sol** - Контракт для приема пожертвований в ETH, отслеживания суммы пожертвований пользователей и выдачи бейджей.
+- **Profile.sol** - Контракт для хранения профилей пользователей, включая информацию о социальных сетях, адресах для пожертвований и репутации.
+
+### Фронтенд
+
+- Next.js приложение с интеграцией Web3 через wagmi и rainbow-kit
+- Автоматическая генерация переменных окружения из деплоев контрактов
+
+## Настройка проекта
+
+### Предварительные требования
+
+- Node.js 18+ и npm/yarn
+- Metamask или другой Ethereum-кошелек
+
+### Установка зависимостей
+
+```bash
+npm install
+# или
+yarn install
+```
+
+### Настройка переменных окружения
+
+1. Скопируйте файл `.env` в `.env.local` (если он еще не создан)
+2. Отредактируйте `.env.local`, заменив плейсхолдеры на реальные значения:
+   - `SEPOLIA_RPC` - URL для подключения к сети Sepolia (например, от Alchemy или Infura)
+   - `PRIVATE_KEY` - Приватный ключ для деплоя контрактов (без префикса 0x)
+
+## Локальная разработка
+
+### Запуск локальной Ethereum-ноды
+
+```bash
+npx hardhat node
+```
+
+### Деплой контрактов в локальную сеть
+
+```bash
+npm run deploy:local
+# или
+yarn deploy:local
+```
+
+### Запуск фронтенда
 
 ```bash
 npm run dev
-# or
+# или
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Откройте [http://localhost:3000](http://localhost:3000) в браузере.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Деплой в тестовую сеть Sepolia
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run deploy:sepolia
+# или
+yarn deploy:sepolia
+```
 
-## Learn More
+## Основные скрипты
 
-To learn more about Next.js, take a look at the following resources:
+- `npm run dev` - Запуск фронтенда в режиме разработки
+- `npm run build` - Сборка фронтенда для продакшена
+- `npm run compile` - Компиляция смарт-контрактов
+- `npm run deploy:local` - Деплой контрактов в локальную сеть и генерация переменных окружения
+- `npm run deploy:sepolia` - Деплой контрактов в сеть Sepolia и генерация переменных окружения
+- `npm run env:gen` - Генерация переменных окружения из существующих деплоев
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Недавние исправления
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Исправлен контракт SoulboundBadge для корректного отслеживания токенов пользователей
+2. Настроена конфигурация сети Sepolia в hardhat.config.ts
+3. Улучшены комментарии в .env файле для более понятной настройки
+4. Обновлена документация проекта

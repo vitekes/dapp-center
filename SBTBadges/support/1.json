@@ -1,0 +1,10 @@
+{
+  "name": "Supporter • Bronze",
+  "description": "Soulbound-бейдж Bronze за поддержку проекта донатом от 0.01 ETH.",
+  "image": "ipfs://QmVavUMtksLgbFuhVNRoWAT2UKYeRFRBmRGBjJqkTcF4KY/images/bronze.png",
+  "attributes": [
+    { "trait_type": "Level",          "value": "Bronze" },
+    { "trait_type": "Category",       "value": "Supporter" },
+    { "display_type": "number", "trait_type": "Token ID", "value": 1 }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "Supporter •  Diamond",
+  "description": "Soulbound-бейдж Diamond за поддержку проекта донатом от 10 ETH.",
+  "image": "ipfs://QmVavUMtksLgbFuhVNRoWAT2UKYeRFRBmRGBjJqkTcF4KY/images/diamond.png",
+  "external_url": "https://your-dapp.example",
+  "attributes": [
+    { "trait_type": "Level", "value": "Diamond" },
+    { "trait_type": "Category", "value": "Supporter" },
+    { "display_type": "number", "trait_type": "Token ID", "value": 3 }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "name": "Supporter •  Platinum",
+  "description": "Soulbound-бейдж Platinum за поддержку проекта донатом от 1 ETH.",
+  "image": "ipfs://QmVavUMtksLgbFuhVNRoWAT2UKYeRFRBmRGBjJqkTcF4KY/images/platinum.png",
+  "attributes": [
+    { "trait_type": "Level", "value": "Platinum" },
+    { "trait_type": "Category", "value": "Supporter" },
+    { "display_type": "number", "trait_type": "Token ID", "value": 3 }
+  ]
+}

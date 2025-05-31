@@ -1,0 +1,14 @@
+{
+    "plugins": ["unused-imports", "import"],
+    "rules": {
+        "unused-imports/no-unused-imports": "error",
+        "unused-imports/no-unused-vars": [
+            "warn",
+            { "vars": "all", "varsIgnorePattern": "^_", "args": "after-used", "argsIgnorePattern": "^_" }
+        ],
+        "import/no-unused-modules": [
+            "warn",
+            { "unusedExports": true, "missingExports": false }
+        ]
+    }
+}

@@ -1,0 +1,13 @@
+{
+  "skip": [
+    "next.config.ts",
+    "hardhat.config.ts",
+    "deploy/*",
+    "src/app/**/page.tsx",
+    "src/app/layout.tsx",
+    "src/widgets/header/header.tsx",
+    "src/shared/api/fetcher.ts",
+    "src/shared/api/apiClient.ts",
+    "src/shared/lib/chainConfig.ts"
+  ]
+}
