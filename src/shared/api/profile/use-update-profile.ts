@@ -25,7 +25,7 @@ export function useUpdateProfile() {
     async (profile: Omit<Profile, 'reputation'>) => {
       await writeContractAsync({
         ...contract,
-        functionName: 'updateProfile',
+        functionName: 'setProfile',
         args: [
           profile.handle,
           profile.bio,
