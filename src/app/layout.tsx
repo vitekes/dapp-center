@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Toaster } from 'react-hot-toast';
+import { Providers } from '@/shared/lib/web3/providers';
 
 export default function RootLayout({
   children,
@@ -11,7 +12,11 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body>
-        {children}
+        {/* Глобальные провайдеры Wagmi / RainbowKit / React-Query */}
+        <Providers>
+          {children}
+        </Providers>
+
         {/* Глобальные тосты */}
         <Toaster position="top-right" />
       </body>
