@@ -30,9 +30,16 @@ export async function generateBlurhash(
           return el;
         })();
 
-  const ctx =
-    // типовая проверка на наличие API OffscreenCanvas
-    'getContext' in canvas ? (canvas as any).getContext('2d')! : null;
+  /* ---------- получаем 2-d контекст без «any» ---------- */
+  const ctx = canvas.getContext('2d') as
+    | CanvasRenderingContext2D
+    | OffscreenCanvasRenderingContext2D
+    | null;
+
+  if (!ctx) {
+    // крайне маловероятно, но лучше обработать
+    throw new Error('Canvas 2D context unavailable');
+  }
 
   ctx.drawImage(imgBitmap, 0, 0, width, height);
   const imgData = ctx.getImageData(0, 0, width, height);

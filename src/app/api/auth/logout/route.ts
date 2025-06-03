@@ -1,7 +1,13 @@
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
-export function POST() {
-  cookies().delete('siwe-session');
-  return NextResponse.json({ ok: true });
+export async function POST() {
+    const res = NextResponse.json({ok: true});
+
+    // удаляем cookie (тот же path, что при установке)
+    res.cookies.delete({
+        name: 'siwe-session',
+        path: '/',
+    });
+
+    return res;
 }

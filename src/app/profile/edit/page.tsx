@@ -9,7 +9,10 @@ import { useQuery } from '@tanstack/react-query';
 import { ProfileForm, ProfileFormValues } from '@/widgets/profile/profile-form';
 import { useUpdateProfile } from '@/shared/api/profile/use-update-profile';
 import { Spinner } from '@/shared/ui/spinner';
-import type { Profile } from '@/entities/profile/model/types'; // <── заменяем any
+import type {
+  Profile,
+  SocialKind,            // 👈 добавили тип соцсети
+} from '@/entities/profile/model/types';
 
 /* ------------------------------------------------------------------ */
 /*  Запрос профиля текущего адреса                                    */
@@ -27,7 +30,7 @@ function mapProfileToFormValues(profile: Profile): ProfileFormValues {
   return {
     displayName: profile.handle,
     bio: profile.bio ?? '',
-            socials: profile.links.map(l => ({ kind: l.kind, url: l.url })),
+    socials: profile.links.map(l => ({ kind: l.kind, url: l.url })),
     donationAddresses: profile.donationAddrs.map(d => ({
       chainId: d.chainId,
       address: d.address,
@@ -77,9 +80,12 @@ export default function EditProfilePage() {
         handle: values.displayName.toLowerCase(),
         bio: values.bio ?? '',
         email: '',
-        links: values.socials.map(l => ({ kind: l.kind, url: l.url })),
-        avatar: '', // пока без NFT-аватара
-        donationAddrs: values.donationAddresses.map(d => ({
+        links: (values.socials ?? []).map(l => ({
+          kind: l.kind as SocialKind, // 👈 приводим к union-типу
+          url: l.url,
+        })),
+        avatar: '',
+        donationAddrs: (values.donationAddresses ?? []).map(d => ({
           chainId: d.chainId,
           address: d.address,
         })),
@@ -123,10 +129,10 @@ export default function EditProfilePage() {
     <main className="container mx-auto max-w-2xl py-8 px-4">
       <h1 className="mb-6 text-2xl font-semibold">Редактирование профиля</h1>
 
+      {/* убрали несуществующий prop `mode` */}
       <ProfileForm
-        mode="edit"
-        initialData={initialData}
-        onSubmit={handleUpdate}
+          defaultValues={initialData}
+          onSubmit={handleUpdate}
       />
 
       {/* Индикаторы статуса обновления */}

@@ -1,227 +1,219 @@
 'use client';
 
-import React from 'react';
-import { z } from 'zod';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 import { Button } from '@/shared/ui/button';
-import type { SocialKind } from '@/entities/profile/model/types';
+import { Input } from '@/shared/ui/input';
+import {Textarea} from "@/shared/ui/textarea";
 
 /* ------------------------------------------------------------------ */
-/*  Схема данных формы                                                */
+/*  Модель данных формы                                               */
 /* ------------------------------------------------------------------ */
+export interface ProfileFormValues {
+    displayName: string;
+    bio?: string;                    // сделали опциональным
+    email?: string;                  // сделали опциональным
+    socials?: { kind: string; url: string }[];
+    donationAddresses?: { chainId: number; address: string }[];
+    avatarContract?: string;
+    avatarTokenId?: string;
+    avatarCid?: string;
+    privateDataCid?: string;
+}
+
+/* ----------------------------- валидация --------------------------- */
 const schema = z.object({
-    displayName: z.string().min(1, 'Укажите имя'),
+    displayName: z.string().min(3, 'Минимум 3 символа'),
+    bio: z.string().max(500, 'Максимум 500 символов').optional(),
+    email: z.string().email('Некорректный email').optional().or(z.literal('')),
     socials: z
         .array(
             z.object({
-                kind: z.enum(['twitter', 'github', 'telegram', 'other']),
-                url: z.string().url('Некорректный URL'),
+                kind: z.string().min(2),
+                url: z.string().url(),
             }),
         )
-        .default([]), // ─► всегда массив на выходе
+        .optional()
+        .default([]),
     donationAddresses: z
         .array(
             z.object({
-                chainId: z.number().int().positive(),
-                address: z
-                    .string()
-                    .regex(/^0x[a-fA-F0-9]{40}$/, 'Некорректный адрес'),
+                chainId: z.coerce.number().int(),
+                address: z.string().min(3),
             }),
         )
-        .default([]), // ─► всегда массив на выходе
-    bio: z.string().max(160).optional(),
+        .optional()
+        .default([]),
+    avatarContract: z.string().optional().or(z.literal('')),
+    avatarTokenId: z.string().optional().or(z.literal('')),
+    avatarCid: z.string().optional().or(z.literal('')),
+    privateDataCid: z.string().optional().or(z.literal('')),
 });
 
-/*  Типы: input (может быть undefined) и output (гарантированные defaults) */
-type FormInput = z.input<typeof schema>;
-export type ProfileFormValues = z.output<typeof schema>;
+/* -------------------------- дефолтные значения --------------------- */
+export const defaultValues: ProfileFormValues = {
+    displayName: '',
+    bio: '',
+    email: '',
+    socials: [],
+    donationAddresses: [],
+    avatarContract: '',
+    avatarTokenId: '',
+    avatarCid: '',
+    privateDataCid: '',
+};
 
 /* ------------------------------------------------------------------ */
-/*  Props                                                             */
+/*  Компонент формы                                                   */
 
 /* ------------------------------------------------------------------ */
-interface ProfileFormProps {
-    /** create | edit */
-    mode: 'create' | 'edit';
-    /** начальные данные (для редактирования) */
-    initialData?: ProfileFormValues;
-    /** внешний submit-обработчик */
-    onSubmit: (values: ProfileFormValues) => void | Promise<void>;
+interface Props {
+    defaultValues?: ProfileFormValues;
+    loading?: boolean;
+
+    onSubmit(values: ProfileFormValues): void | Promise<void>;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Компонент формы профиля                                           */
-
-/* ------------------------------------------------------------------ */
-export function ProfileForm({mode, initialData, onSubmit: externalSubmit,}: ProfileFormProps) {
+export function ProfileForm({defaultValues: dv, loading, onSubmit}: Props) {
     const {
         register,
         handleSubmit,
         control,
-        formState: {errors, isSubmitting},
-    } = useForm<FormInput>({
+        formState: {errors},
+    } = useForm<ProfileFormValues>({
+        defaultValues: dv ?? defaultValues,
         resolver: zodResolver(schema),
-        defaultValues: initialData, // Zod сам подставит defaults
     });
 
-    /* FieldArray — соцсети */
-    const socialsFA = useFieldArray({
-        control,
-        name: 'socials',
-    });
+    const {fields: socialFields, append: addSocial, remove: rmSocial} =
+        useFieldArray({control, name: 'socials'});
 
-    /* FieldArray — адреса донатов */
-    const donationFA = useFieldArray({
-        control,
-        name: 'donationAddresses',
-    });
+    const {
+        fields: donationFields,
+        append: addDonation,
+        remove: rmDonation,
+    } = useFieldArray({control, name: 'donationAddresses'});
 
-    /* submit */
-    const onSubmit = handleSubmit(async data => {
-        // превращаем input → output (defaults гарантированы)
-        const values = schema.parse(data);
-        await externalSubmit(values);
-    });
-
-    /* ---------------------------------------------------------------- */
-    /*  UI                                                              */
-    /* ---------------------------------------------------------------- */
     return (
-        <form onSubmit={onSubmit} className="space-y-6">
-            {/* displayName */}
-            <div>
-                <label className="block text-sm font-medium">Имя</label>
-                <input
-                    {...register('displayName')}
-                    className="mt-1 w-full rounded border px-3 py-2"
-                    placeholder="Vitalik"
-                />
-                {errors.displayName && (
-                    <p className="mt-1 text-xs text-red-600">
-                        {errors.displayName.message}
-                    </p>
-                )}
-            </div>
+        <form
+            className="space-y-6 max-w-2xl mx-auto"
+            onSubmit={handleSubmit(onSubmit)}
+        >
+            {/* ---------------------- handle / display name ---------------- */}
+            <Input
+                label="Отображаемое имя"
+                error={errors.displayName?.message}
+                {...register('displayName')}
+            />
 
-            {/* bio */}
-            <div>
-                <label className="block text-sm font-medium">Bio</label>
-                <textarea
-                    {...register('bio')}
-                    rows={3}
-                    className="mt-1 w-full rounded border px-3 py-2"
-                    placeholder="О себе"
-                />
-                {errors.bio && (
-                    <p className="mt-1 text-xs text-red-600">{errors.bio.message}</p>
-                )}
-            </div>
+            {/* --------------------------- bio ----------------------------- */}
+            <Textarea
+                label="Био"
+                placeholder="Расскажите о себе"
+                rows={5}
+                {...register('bio')}
+            />
 
-            {/* socials */}
-            <fieldset className="space-y-2">
-                <legend className="text-sm font-medium">Ссылки на соцсети</legend>
+            {/* -------------------------- email ---------------------------- */}
+            <Input
+                label="E-mail"
+                placeholder="you@example.com"
+                error={errors.email?.message}
+                {...register('email')}
+            />
 
-                {socialsFA.fields.map((field, idx) => (
-                    <div key={field.id} className="flex gap-2">
-                        <select
-                            {...register(`socials.${idx}.kind`)}
-                            className="w-32 rounded border px-2 py-1 text-sm"
-                        >
-                            <option value="twitter">Twitter</option>
-                            <option value="github">GitHub</option>
-                            <option value="telegram">Telegram</option>
-                            <option value="other">Другое</option>
-                        </select>
-
-                        <input
-                            {...register(`socials.${idx}.url`)}
-                            className="flex-1 rounded border px-3 py-1 text-sm"
-                            placeholder="https://"
+            {/* ---------------------- socials ------------------------------ */}
+            <section>
+                <h3 className="font-medium mb-2">Соцсети</h3>
+                {socialFields.map((f, i) => (
+                    <div key={f.id} className="grid grid-cols-2 gap-4 mb-2">
+                        <Input
+                            placeholder="twitter"
+                            {...register(`socials.${i}.kind`)}
                         />
-
+                        <Input
+                            placeholder="https://twitter.com/…"
+                            {...register(`socials.${i}.url`)}
+                        />
                         <Button
                             type="button"
-                            variant="ghost"
-                            onClick={() => socialsFA.remove(idx)}
+                            variant="secondary"
+                            onClick={() => rmSocial(i)}
                         >
-                            ✕
+                            Удалить
                         </Button>
                     </div>
                 ))}
-
-                <Button
-                    type="button"
-                    size="sm"
-                    variant="secondary"
-                    onClick={() =>
-                        socialsFA.append({kind: 'twitter' as SocialKind, url: ''})
-                    }
-                >
+                <Button type="button" onClick={() => addSocial({kind: '', url: ''})}>
                     Добавить ссылку
                 </Button>
+            </section>
 
-                {errors.socials && (
-                    <p className="text-xs text-red-600">Проверьте ссылки</p>
-                )}
-            </fieldset>
-
-            {/* donation addresses */}
-            <fieldset className="space-y-2">
-                <legend className="text-sm font-medium">
-                    Адреса для донатов
-                </legend>
-
-                {donationFA.fields.map((field, idx) => (
-                    <div key={field.id} className="flex gap-2">
-                        <input
+            {/* ------------------- donation addresses ---------------------- */}
+            <section>
+                <h3 className="font-medium mb-2">Donation-адреса</h3>
+                {donationFields.map((f, i) => (
+                    <div key={f.id} className="grid grid-cols-2 gap-4 mb-2">
+                        <Input
+                            placeholder="1 (Ethereum Mainnet)"
                             type="number"
-                            {...register(`donationAddresses.${idx}.chainId`, {
-                                valueAsNumber: true,
-                            })}
-                            className="w-24 rounded border px-2 py-1 text-sm"
-                            placeholder="1"
+                            {...register(`donationAddresses.${i}.chainId`)}
                         />
-
-                        <input
-                            {...register(`donationAddresses.${idx}.address`)}
-                            className="flex-1 rounded border px-3 py-1 text-sm"
-                            placeholder="0x…"
+                        <Input
+                            placeholder="0xabc…"
+                            {...register(`donationAddresses.${i}.address`)}
                         />
-
                         <Button
                             type="button"
-                            variant="ghost"
-                            onClick={() => donationFA.remove(idx)}
+                            variant="secondary"
+                            onClick={() => rmDonation(i)}
                         >
-                            ✕
+                            Удалить
                         </Button>
                     </div>
                 ))}
-
                 <Button
                     type="button"
-                    size="sm"
-                    variant="secondary"
-                    onClick={() =>
-                        donationFA.append({chainId: 1, address: ''})
-                    }
+                    onClick={() => addDonation({chainId: 1, address: ''})}
                 >
                     Добавить адрес
                 </Button>
+            </section>
 
-                {errors.donationAddresses && (
-                    <p className="text-xs text-red-600">
-                        Проверьте адреса
-                    </p>
-                )}
-            </fieldset>
+            {/* ----------------ார்கள் NFT avatar -------------------------- */}
+            <section className="grid grid-cols-2 gap-4">
+                <Input
+                    label="NFT-контракт"
+                    placeholder="0xabc…"
+                    {...register('avatarContract')}
+                />
+                <Input
+                    label="Token ID"
+                    placeholder="0"
+                    {...register('avatarTokenId')}
+                />
+            </section>
 
-            {/* submit */}
-            <Button type="submit" disabled={isSubmitting}>
-                {mode === 'create' ? 'Создать профиль' : 'Сохранить изменения'}
-            </Button>
+            {/* --------------- IPFS avatar & private data CIDs ------------- */}
+            <Input
+                label="Avatar CID (IPFS)"
+                placeholder="bafy…"
+                {...register('avatarCid')}
+            />
+            <Input
+                label="Private data CID"
+                placeholder="bafy…"
+                {...register('privateDataCid')}
+            />
+
+            {/* ------------------------- submit ---------------------------- */}
+            <div className="text-right">
+                <Button type="submit" disabled={loading}>
+                    {loading ? 'Сохранение…' : 'Сохранить'}
+                </Button>
+            </div>
         </form>
     );
 }

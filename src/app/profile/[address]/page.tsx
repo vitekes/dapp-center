@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';   // ◀ добавили useParams
 import { useQuery } from '@tanstack/react-query';
 import { useAccount } from 'wagmi';
 
@@ -10,10 +10,6 @@ import { Spinner } from '@/shared/ui/spinner';
 import { Button } from '@/shared/ui/button';
 import { ProfileCard } from '@/entities/profile/ui/profile-card';
 import { NotFoundProfile } from '@/widgets/profile/profile-not-found';
-
-interface PageProps {
-  params: { address: string };
-}
 
 /* ------------------------------------------------------------------ */
 /*  Получение профиля из API                                          */
@@ -27,8 +23,9 @@ async function fetchProfile(handleOrAddress: string): Promise<Profile | null> {
 /* ------------------------------------------------------------------ */
 /*  Страница профиля                                                  */
 /* ------------------------------------------------------------------ */
-export default function ProfilePage({ params }: PageProps) {
+export default function ProfilePage() {           // ◀ убрали props
   const router = useRouter();
+  const params = useParams<{ address: string }>(); // ◀ получаем address
   const { address: connectedAddr, isConnected } = useAccount();
 
   const handleOrAddress = decodeURIComponent(params.address);
